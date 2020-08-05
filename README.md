@@ -23,7 +23,7 @@ In general, they are updated twice a month.
 If they are still in progress, get the former dump.
 
 1. Clone this repository then open a shell to the `~/code` directory.
-2. Retrieve the dataset.
+2. [Retrieve](./code/download_wikimedia.py) the dataset.
    ```{shell}
    python download_wikimedia.py -wiki enwiki -date 20200720 -dest d:/enwiki
    ```
@@ -31,4 +31,10 @@ If they are still in progress, get the former dump.
    ```{shell}
    "C:/Program Files/7-Zip/7z.exe" e -od:/enwiki "d:/enwiki/*.bz2"
    del "d:\enwiki\*.xml.bz2"
+   ```
+4. [Extract](./code/extract_metadata.py) the metadata.
+   This will create a single `metadata.csv` containing some useful information.
+   In general this would be used as part of segementation or as part of a MANOVA.
+   ```{shell}
+   python extract_metadata.py -in d:/enwiki/enwiki-20200720.xml -out d:/enwiki/metadata.csv
    ```
