@@ -27,3 +27,8 @@ If they are still in progress, get the former dump.
    ```{shell}
    python download_wikimedia.py -wiki enwiki -date 20200720 -dest d:/enwiki
    ```
+3. Extract the data in-place.
+   ```{shell}
+   "C:/Program Files/7-Zip/7z.exe" e -od:/enwiki "d:/enwiki/*.bz2"
+   del "d:\enwiki\*.xml.bz2"
+   ```
