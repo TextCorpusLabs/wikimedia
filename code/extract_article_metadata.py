@@ -2,6 +2,7 @@ import csv
 import mwxml
 import pathlib
 import progressbar as pb
+import utils as u
 from argparse import ArgumentParser
 from collections import namedtuple
 from os.path import getsize
@@ -35,31 +36,13 @@ def extract_article_metadata(mediawiki_file: pathlib.Path, metadata_file: pathli
             with open(metadata_file, 'w', encoding = 'utf-8', newline = '') as metadata_file:
                 metadata_file = csv.writer(metadata_file, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_ALL)
                 metadata_file.writerow(['id', 'title'])
-                for article in __list_articles(mediawiki_file):
+                for article in u.list_articles(mediawiki_file):
                     try:
                         wmd = __parse_wmd(article)
                         metadata_file.writerow([wmd.id.rjust(10, '0'), wmd.title])
                         bar.update(mediawiki_file.tell())
                     except Exception as ex:
                         print(article.page.title + ': ' + str(ex))
-
-def __list_articles(mediawiki_file):
-    """
-    mediawiki files store a lot of extra history information.
-    we only need the latest information
-    """
-
-    dis = 'disambiguation'
-    dump = mwxml.Dump.from_file(mediawiki_file)
-
-    for page in dump:
-        if page.namespace == 0 and page.redirect is None and dis not in page.title:
-            last_revision = None
-            for revision in page:
-                if not revision.deleted.text:
-                    last_revision = revision
-            if last_revision is not None and last_revision.model == 'wikitext':
-                yield last_revision
 
 @typechecked
 def __parse_wmd(article: mwxml.iteration.revision.Revision) -> WMD:
