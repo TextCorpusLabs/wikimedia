@@ -1,6 +1,9 @@
 import mwxml
+import typing as t
+from typeguard import typechecked
 
-def list_articles(mediawiki_file):
+@typechecked
+def list_articles(mediawiki_file: t.TextIO) -> t.Iterator[mwxml.iteration.revision.Revision]:
     """
     mediawiki files store a lot of extra history information.
     we only need the latest information
