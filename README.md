@@ -39,8 +39,14 @@ If they are still in progress, get the former dump.
    python extract_article_metadata.py -in d:/enwiki/enwiki-20200720.xml -out d:/enwiki/metadata.csv
    ```
 5. [Extract](./code/extract_article_text.py) the article text.
-   This will create a folder containing all the text documents.
-   One file per article.
+   This will create a folder containing all the articles in text only form.
+   One article per file.
    ```{shell}
    python extract_article_text.py -in d:/enwiki/enwiki-20200720.xml -out d:/enwiki/articles
+   ```
+6. [Tokenize](./code/tokenize_article_text.py) the article text.
+   This will create a folder containing all the tokenized documents.
+   Creating one sentence per line with paragraphs have a blank line between them.
+   ```{shell}
+   python tokenize_article_text.py -in d:/enwiki/articles -out d:/enwiki/tokenized
    ```
