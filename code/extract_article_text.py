@@ -8,14 +8,13 @@ import typing as t
 import utils as u
 from argparse import ArgumentParser
 from collections import namedtuple
-from os.path import getsize
 from typeguard import typechecked
 
 # declare all the named tuples up front
 WMD = namedtuple('WMD', 'id title paragraphs')
 
 @typechecked
-def extract_article_text(mediawiki_file: pathlib.Path, articles_folder: pathlib.Path) -> None:
+def extract_article_text(mediawiki_file: pathlib.Path, articles_folder: pathlib.Path, range_start: int, range_end: int) -> None:
     """
     Converts a Wikimedia dump file to folder containing all the articles minus any wiki markup.
     Articles that contain no text are removed.
@@ -27,23 +26,28 @@ def extract_article_text(mediawiki_file: pathlib.Path, articles_folder: pathlib.
         The XML dump file from Wikimedia
     articles_folder : pathlib.Path
         The folder containing all the articles
+    range_start : int
+        The start of the range used to determine is an article is written to disk
+    range_end : int
+        The end of the range used to determine is an article is written to disk
     """
 
     if articles_folder.exists():
         shutil.rmtree(str(articles_folder))
     articles_folder.mkdir(parents = True)
 
-    widgets = ['Extracting Articles: ', pb.Percentage(), ' ', pb.Bar(marker = '.', left = '[', right = ']'), ' ', pb.ETA()]
-    with pb.ProgressBar(widgets = widgets, max_value = getsize(mediawiki_file)) as bar:
+    widgets = [ 'Extracting Article # ', pb.Counter(), ' ', pb.Timer(), ' ', pb.BouncingBar(marker = '.', left = '[', right = ']')]
+    with pb.ProgressBar(widgets = widgets) as bar:
         with open(mediawiki_file, 'r', encoding = 'utf-8') as mediawiki_file:
             for article in u.list_articles(mediawiki_file):
-                try:
-                    wmd = __parse_wmd(article)
-                    if len(wmd.paragraphs) > 0:
-                        __write_article_file(articles_folder, wmd)
-                        bar.update(mediawiki_file.tell())
-                except Exception as ex:
-                    print(article.page.title + ': ' + str(ex))
+                bar.update(article.page.id)
+                if range_start <= article.page.id and article.page.id <= range_end:
+                    try:
+                        wmd = __parse_wmd(article)
+                        if len(wmd.paragraphs) > 0:
+                            __write_article_file(articles_folder, wmd)
+                    except Exception as ex:
+                        print(article.page.title + ': ' + str(ex))
 
 @typechecked
 def __parse_wmd(article: mwxml.iteration.revision.Revision) -> WMD:
@@ -174,7 +178,19 @@ if __name__ == '__main__':
         help = 'The folder containing all the articles',
         type = pathlib.Path,
         required = True)
+    parser.add_argument(
+        '-rs', '--range-start',
+        help = 'The start of the range used to determine is an article is written to disk',
+        type = int,
+        default = 0)
+    parser.add_argument(
+        '-re', '--range-end',
+        help = 'The end of the range used to determine is an article is written to disk',
+        type = int,
+        default = 9999999999)
     args = parser.parse_args()    
-    print(f'in: {args.file_in}')
-    print(f'out: {args.folder_out}')
-    extract_article_text(args.file_in, args.folder_out)
+    print(f'file in: {args.file_in}')
+    print(f'folder out: {args.folder_out}')
+    print(f'range start: {args.range_start}')
+    print(f'range end: {args.range_end}')
+    extract_article_text(args.file_in, args.folder_out, args.range_start, args.range_end)
