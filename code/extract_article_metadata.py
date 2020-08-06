@@ -39,7 +39,7 @@ def extract_article_metadata(mediawiki_file: pathlib.Path, metadata_file: pathli
                 for article in u.list_articles(mediawiki_file):
                     try:
                         wmd = __parse_wmd(article)
-                        metadata_file.writerow([wmd.id.rjust(10, '0'), wmd.title])
+                        metadata_file.writerow([u.fix_id_width(wmd.id), wmd.title])
                         bar.update(mediawiki_file.tell())
                     except Exception as ex:
                         print(article.page.title + ': ' + str(ex))
@@ -50,7 +50,7 @@ def __parse_wmd(article: mwxml.iteration.revision.Revision) -> WMD:
     Gets the parts of the wiki markdown we care about
     """
 
-    return WMD(str(article.page.id), article.page.title)
+    return WMD(article.page.id, article.page.title)
 
 if __name__ == '__main__':
     parser = ArgumentParser()

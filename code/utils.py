@@ -20,3 +20,10 @@ def list_articles(mediawiki_file: t.TextIO) -> t.Iterator[mwxml.iteration.revisi
                     last_revision = revision
             if last_revision is not None and last_revision.model == 'wikitext':
                 yield last_revision
+
+@typechecked
+def fix_id_width(id: int) -> str:
+    """
+    force the mediawiki into a fixed length string to allow for alpha sorting
+    """
+    return str(id).rjust(10, '0')
