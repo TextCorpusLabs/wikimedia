@@ -38,3 +38,9 @@ If they are still in progress, get the former dump.
    ```{shell}
    python extract_article_metadata.py -in d:/enwiki/enwiki-20200720.xml -out d:/enwiki/metadata.csv
    ```
+5. [Extract](./code/extract_article_text.py) the article text.
+   This will create a folder containing all the text documents.
+   One file per article.
+   ```{shell}
+   python extract_article_text.py -in d:/enwiki/enwiki-20200720.xml -out d:/enwiki/articles
+   ```

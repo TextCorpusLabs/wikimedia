@@ -1,3 +1,4 @@
+mwparserfromhell==0.5.4
 mwxml==0.3.3
 typeguard==2.7.1
 wget==3.2
