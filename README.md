@@ -2,6 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.x-blue.svg)
 ![MIT license](https://img.shields.io/badge/License-MIT-green.svg)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3975690.svg)](https://doi.org/10.5281/zenodo.3975690)
 
 [Wikimedia](https://www.wikimedia.org/) is the driving force behind [Wikipedia](https://www.wikipedia.org/).
 They provide a monthly full backup of all the data on Wikipedia as well as their properties.
