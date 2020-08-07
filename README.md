@@ -55,3 +55,11 @@ If they are still in progress, get the former dump.
    ```{shell}
    python tokenize_article_text.py -in d:/enwiki/articles -out d:/enwiki/tokenized
    ```
+
+## Academic boilerplate
+
+Below is the suggested text to add to the "Methods and Materials" section of your paper when using this _process_.
+The references can be found [here](./references.bib)
+
+> The 2020/07/20 English version of Wikipedia [@wikipedia2020] was downloaded using Wikimedia's download service [@wikimedia2020].
+> The single-file data dump was then converted to a corpus of plain text articles using the process described in @wikicorpus2020.
