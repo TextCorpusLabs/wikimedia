@@ -24,22 +24,26 @@ In general, they are updated twice a month.
 If they are still in progress, get the former dump.
 
 1. Clone this repository then open a shell to the `~/code` directory.
-2. [Retrieve](./code/download_wikimedia.py) the dataset.
+2. Install the required modules.
+   ```{shell}
+   pip install -r requirments.txt
+   ```
+3. [Retrieve](./code/download_wikimedia.py) the dataset.
    ```{shell}
    python download_wikimedia.py -wiki enwiki -date 20200720 -dest d:/enwiki
    ```
-3. Extract the data in-place.
+4. Extract the data in-place.
    ```{shell}
    "C:/Program Files/7-Zip/7z.exe" e -od:/enwiki "d:/enwiki/*.bz2"
    del "d:\enwiki\*.xml.bz2"
    ```
-4. [Extract](./code/extract_article_metadata.py) the article metadata.
+5. [Extract](./code/extract_article_metadata.py) the article metadata.
    This will create a single `metadata.csv` containing some useful information.
    In general this would be used as part of segementation or as part of a MANOVA.
    ```{shell}
    python extract_article_metadata.py -in d:/enwiki/enwiki-20200720.xml -out d:/enwiki/metadata.csv
    ```
-5. [Extract](./code/extract_article_text.py) the article text.
+6. [Extract](./code/extract_article_text.py) the article text.
    This will create a folder containing all the articles in text only form.
    One article per file.
    ```{shell}
@@ -50,7 +54,7 @@ If they are still in progress, get the former dump.
    Using this argument will _read and partially parse_ the full mediawiki file, but only write articles whose `ID`s are in the inclusive range.
    **NOTE:** there are no checks on this option.
    If you fail to select the full range, you will fail to return all the articles.
-6. [Tokenize](./code/tokenize_article_text.py) the article text.
+7. [Tokenize](./code/tokenize_article_text.py) the article text.
    This will create a folder containing all the tokenized documents.
    Creating one sentence per line with paragraphs have a blank line between them.
    ```{shell}
