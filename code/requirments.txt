@@ -1,5 +1,5 @@
 mwparserfromhell==0.5.4
 mwxml==0.3.3
-nltk=3.4.5
+nltk==3.4.5
 typeguard==2.7.1
 wget==3.2
