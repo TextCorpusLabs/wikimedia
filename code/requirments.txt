@@ -1,5 +1,6 @@
 mwparserfromhell==0.5.4
 mwxml==0.3.3
+progressbar2==3.51.4
 nltk==3.4.5
 typeguard==2.7.1
 wget==3.2
