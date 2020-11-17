@@ -55,11 +55,11 @@ If you use a different shell, your syntax will be different.
    Using this argument will _read and partially parse_ the full mediawiki file, but only write articles whose `ID`s are in the inclusive range.
    **NOTE:** there are no checks on this option.
    If you fail to select the full range, you will fail to return all the articles.
-6. [Tokenize](./code/tokenize_article_text.py) the article text.
+6. [Tokenize](./code/tokenize_wikimedia_jsonl.py) the article text.
    This will create a folder containing all the tokenized documents.
    Creating one sentence per line with paragraphs have a blank line between them.
    ```{ps1}
-   python tokenize_article_text.py -in d:/$wiki/articles -out d:/$wiki/tokenized
+   python tokenize_wikimedia_jsonl.py -in d:/$wiki/$wiki.jsonl -out d:/$wiki/$wiki.tokenized.jsonl
    ```
 
 ## Academic boilerplate
