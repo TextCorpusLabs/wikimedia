@@ -32,17 +32,17 @@ def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path) -> No
     if jsonl_out.exists():
         jsonl_out.unlink()
 
-    worker = mpb.MultiWorker(_parse_wmd)
+    worker = mpb.MultiWorker(_parse_article)
     worker.start()
     load = Thread(target = _collect_articles, args = (mediawiki_in, worker))
     load.start()
-    _save_to_jsonl(worker, jsonl_out)
+    _save_articles_to_jsonl(worker, jsonl_out)
     load.join()
 
 @typechecked
 def _collect_articles(mediawiki_in: pathlib.Path, worker: mpb.MultiWorker) -> None:
     """
-    Gets the full xml of the wiki atricle
+    Gets the full xml of the wiki article
     mediawiki files store a lot of extra history information.
     we only need the latest information
     """
@@ -62,14 +62,14 @@ def _collect_articles(mediawiki_in: pathlib.Path, worker: mpb.MultiWorker) -> No
     worker.finished_adding_tasks()
 
 @typechecked
-def _parse_wmd(article: mwxml.iteration.revision.Revision) -> dict:
+def _parse_article(article: mwxml.iteration.revision.Revision) -> dict:
     """
     Gets the parts of the wiki markdown we care about
     """
 
     wikicode = mwparserfromhell.parse(article.text)
     text = ''.join(map(_extract_text, wikicode.nodes))
-    paragraphs = _clean_wmd(text)
+    paragraphs = _clean_article(text)
     json = { 'id' : article.page.id, 'title' : article.page.title, 'text' : paragraphs }
 
     return json
@@ -136,9 +136,9 @@ def _extract_text_html(node: mwparserfromhell.nodes.html_entity.HTMLEntity) -> s
     return html.unescape(str(node))
 
 @typechecked
-def _clean_wmd(text: str) -> list:
+def _clean_article(text: str) -> list:
     """
-    Cleans a wmd text extract
+    Cleans an article text extract
 
     Normaly a files are read a line, write a line.
     However in this case there are cases where we need to know the contents of the line above or below.
@@ -149,13 +149,13 @@ def _clean_wmd(text: str) -> list:
     lines = filter(lambda line: line != '', lines)
     lines = filter(lambda line: line.upper() != 'THUMB', lines)
     lines = reversed(list(lines))
-    lines = _clean_wmd_leading_categories(lines)
+    lines = _clean_leading_categories(lines)
     lines = reversed(list(lines))
 
     return list(lines)
 
 @typechecked
-def _clean_wmd_leading_categories(lines: t.Iterator) -> t.Iterator[str]:
+def _clean_leading_categories(lines: t.Iterator) -> t.Iterator[str]:
     """
     Cleans up any wikimedia 'Category' tags
     """
@@ -167,13 +167,13 @@ def _clean_wmd_leading_categories(lines: t.Iterator) -> t.Iterator[str]:
             yield line
 
 @typechecked
-def _save_to_jsonl(worker: mpb.MultiWorker, jsonl_out: pathlib.Path) -> None:
+def _save_articles_to_jsonl(worker: mpb.MultiWorker, jsonl_out: pathlib.Path) -> None:
     """
-    Writes the relevant wmd data to disk
+    Writes the relevant data to disk
     """
 
     bar_i = 0
-    widgets = [ 'Writeing Articles # ', pb.Counter(), ' ', pb.Timer(), ' ', pb.BouncingBar(marker = '.', left = '[', right = ']')]
+    widgets = [ 'Writing Articles # ', pb.Counter(), ' ', pb.Timer(), ' ', pb.BouncingBar(marker = '.', left = '[', right = ']')]
     with pb.ProgressBar(widgets = widgets) as bar:
         with open(jsonl_out, 'w', encoding = 'utf-16') as fp:
             with jl.Writer(fp, compact = True, sort_keys = True) as writer:
