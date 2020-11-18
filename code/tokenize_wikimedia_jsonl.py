@@ -30,20 +30,17 @@ def tokenize_wikimedia_jsonl(jsonl_in: pathlib.Path, jsonl_out: pathlib.Path) ->
     worker.start()
     worker.join()
 
-@typechecked
 def _collect_articles(jsonl_in: pathlib.Path) -> t.Iterator[dict]:
     with open(jsonl_in, 'r', encoding = 'utf-16') as fp:
         with jl.Reader(fp) as reader:
             for item in reader:
                 yield item
 
-@typechecked
 def _tokenize_article(article: dict) -> dict:
     lines = [line for line in _tokenize_lines(article['text'])]
     json = { 'id' : article['id'], 'title' : article['title'], 'text': article['text'], 'tokenized' : lines }
     return json
 
-@typechecked
 def _tokenize_lines(lines: t.List[str]) -> t.Iterator[str]:
     """
     Tokenizes all the lines into paragraphs/words using standard Punkt + Penn Treebank tokenizers
@@ -60,7 +57,6 @@ def _tokenize_lines(lines: t.List[str]) -> t.Iterator[str]:
                 words = word_tokenize(sentence)
                 yield ' '.join(words)
 
-@typechecked
 def _save_articles_to_jsonl(results: t.Iterator[dict], jsonl_out: pathlib.Path) -> None:
     """
     Writes the relevant data to disk
