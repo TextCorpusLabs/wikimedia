@@ -1,11 +1,9 @@
 import pathlib
 import jsonlines as jl
 import mp_boilerplate as mpb
-import progressbar as pb
 import typing as t
 from argparse import ArgumentParser
 from nltk.tokenize import word_tokenize, sent_tokenize
-from threading import Thread
 from typeguard import typechecked
 
 @typechecked
@@ -24,20 +22,20 @@ def tokenize_wikimedia_jsonl(jsonl_in: pathlib.Path, jsonl_out: pathlib.Path) ->
     if jsonl_out.exists():
         jsonl_out.unlink()
 
-    worker = mpb.MultiWorker(_tokenize_article)   
+    worker = mpb.EPTS(
+        extract = _collect_articles, extract_args = (jsonl_in),
+        transform = _tokenize_article,
+        save = _save_articles_to_jsonl, save_args = (jsonl_out),
+        show_progress = True)
     worker.start()
-    load = Thread(target = _collect_articles, args = (jsonl_in, worker))
-    load.start()
-    _save_articles_to_jsonl(worker, jsonl_out)
-    load.join()
+    worker.join()
 
 @typechecked
-def _collect_articles(jsonl_in: pathlib.Path, worker: mpb.MultiWorker) -> None:
+def _collect_articles(jsonl_in: pathlib.Path) -> t.Iterator[dict]:
     with open(jsonl_in, 'r', encoding = 'utf-16') as fp:
         with jl.Reader(fp) as reader:
             for item in reader:
-                worker.add_task(item)
-    worker.finished_adding_tasks()
+                yield item
 
 @typechecked
 def _tokenize_article(article: dict) -> dict:
@@ -46,7 +44,7 @@ def _tokenize_article(article: dict) -> dict:
     return json
 
 @typechecked
-def _tokenize_lines(lines: list) -> t.Iterator[str]:
+def _tokenize_lines(lines: t.List[str]) -> t.Iterator[str]:
     """
     Tokenizes all the lines into paragraphs/words using standard Punkt + Penn Treebank tokenizers
     Due to how Wikimedia articales were extracted in the prior step, 1 line = 1 paragraph
@@ -63,20 +61,14 @@ def _tokenize_lines(lines: list) -> t.Iterator[str]:
                 yield ' '.join(words)
 
 @typechecked
-def _save_articles_to_jsonl(worker: mpb.MultiWorker, jsonl_out: pathlib.Path) -> None:
+def _save_articles_to_jsonl(results: t.Iterator[dict], jsonl_out: pathlib.Path) -> None:
     """
     Writes the relevant data to disk
     """
-
-    bar_i = 0
-    widgets = [ 'Writing Articles # ', pb.Counter(), ' ', pb.Timer(), ' ', pb.BouncingBar(marker = '.', left = '[', right = ']')]
-    with pb.ProgressBar(widgets = widgets) as bar:
-        with open(jsonl_out, 'w', encoding = 'utf-16') as fp:
-            with jl.Writer(fp, compact = True, sort_keys = True) as writer:
-                for item in worker.get_results():
-                    bar_i = bar_i + 1
-                    bar.update(bar_i)
-                    writer.write(item)
+    with open(jsonl_out, 'w', encoding = 'utf-16') as fp:
+        with jl.Writer(fp, compact = True, sort_keys = True) as writer:
+            for item in results:
+                writer.write(item)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
