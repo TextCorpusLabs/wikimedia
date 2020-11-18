@@ -4,15 +4,9 @@ import mp_boilerplate as mpb
 import mwparserfromhell
 import mwxml
 import pathlib
-import progressbar as pb
 import typing as t
 from argparse import ArgumentParser
-from threading import Thread
 from typeguard import typechecked
-
-
-import time
-
 
 @typechecked
 def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path) -> None:
@@ -32,15 +26,16 @@ def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path) -> No
     if jsonl_out.exists():
         jsonl_out.unlink()
 
-    worker = mpb.MultiWorker(_parse_article)
+    worker = mpb.EPTS(
+        extract = _collect_articles, extract_args = (mediawiki_in),
+        transform = _parse_article,
+        save = _save_articles_to_jsonl, save_args = (jsonl_out),
+        show_progress = True)
     worker.start()
-    load = Thread(target = _collect_articles, args = (mediawiki_in, worker))
-    load.start()
-    _save_articles_to_jsonl(worker, jsonl_out)
-    load.join()
+    worker.join()
 
 @typechecked
-def _collect_articles(mediawiki_in: pathlib.Path, worker: mpb.MultiWorker) -> None:
+def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.revision.Revision]:
     """
     Gets the full xml of the wiki article
     mediawiki files store a lot of extra history information.
@@ -58,8 +53,7 @@ def _collect_articles(mediawiki_in: pathlib.Path, worker: mpb.MultiWorker) -> No
                     if not revision.deleted.text:
                         last_revision = revision
                 if last_revision is not None and last_revision.model == 'wikitext':
-                    worker.add_task(last_revision)
-    worker.finished_adding_tasks()
+                    yield last_revision
 
 @typechecked
 def _parse_article(article: mwxml.iteration.revision.Revision) -> dict:
@@ -167,21 +161,15 @@ def _clean_leading_categories(lines: t.Iterator) -> t.Iterator[str]:
             yield line
 
 @typechecked
-def _save_articles_to_jsonl(worker: mpb.MultiWorker, jsonl_out: pathlib.Path) -> None:
+def _save_articles_to_jsonl(results: t.Iterator[dict], jsonl_out: pathlib.Path) -> None:
     """
     Writes the relevant data to disk
     """
-
-    bar_i = 0
-    widgets = [ 'Writing Articles # ', pb.Counter(), ' ', pb.Timer(), ' ', pb.BouncingBar(marker = '.', left = '[', right = ']')]
-    with pb.ProgressBar(widgets = widgets) as bar:
-        with open(jsonl_out, 'w', encoding = 'utf-16') as fp:
-            with jl.Writer(fp, compact = True, sort_keys = True) as writer:
-                for item in worker.get_results():
-                    if len(item['text']) > 0:
-                        bar_i = bar_i + 1
-                        bar.update(bar_i)
-                        writer.write(item)
+    with open(jsonl_out, 'w', encoding = 'utf-16') as fp:
+        with jl.Writer(fp, compact = True, sort_keys = True) as writer:
+            for item in results:
+                if len(item['text']) > 0:
+                    writer.write(item)
 
 if __name__ == '__main__':
     parser = ArgumentParser()
