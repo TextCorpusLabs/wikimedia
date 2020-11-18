@@ -34,7 +34,6 @@ def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path) -> No
     worker.start()
     worker.join()
 
-@typechecked
 def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.revision.Revision]:
     """
     Gets the full xml of the wiki article
@@ -55,7 +54,6 @@ def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.
                 if last_revision is not None and last_revision.model == 'wikitext':
                     yield last_revision
 
-@typechecked
 def _parse_article(article: mwxml.iteration.revision.Revision) -> dict:
     """
     Gets the parts of the wiki markdown we care about
@@ -68,7 +66,6 @@ def _parse_article(article: mwxml.iteration.revision.Revision) -> dict:
 
     return json
 
-@typechecked
 def _extract_text(node: mwparserfromhell.nodes.Node) -> str:
     """
     Extracts the text from a wikinode
@@ -97,7 +94,6 @@ def _extract_text(node: mwparserfromhell.nodes.Node) -> str:
     else:
         raise Exception('unknown type: ' + str(type(node)) + ' ' + str(node))
 
-@typechecked
 def _extract_text_Wikilink(node: mwparserfromhell.nodes.wikilink.Wikilink) -> str:
     """
     Wikilinks come in 2 formats, thumbnails and actual links.
@@ -111,25 +107,21 @@ def _extract_text_Wikilink(node: mwparserfromhell.nodes.wikilink.Wikilink) -> st
     else:
         return ''.join(map(_extract_text, node.title.nodes))
 
-@typechecked
 def _extract_text_ExternalLink(node: mwparserfromhell.nodes.external_link.ExternalLink) -> str:
     if(node.title == None):
         return ''
     else:
         return ''.join(map(_extract_text, node.title.nodes))
 
-@typechecked
 def _extract_text_Tag(node: mwparserfromhell.nodes.tag.Tag) -> str:
     if(node.contents == None):
         return ''
     else:
         return ''.join(map(_extract_text, node.contents.nodes))
 
-@typechecked
 def _extract_text_html(node: mwparserfromhell.nodes.html_entity.HTMLEntity) -> str:
     return html.unescape(str(node))
 
-@typechecked
 def _clean_article(text: str) -> list:
     """
     Cleans an article text extract
@@ -148,7 +140,6 @@ def _clean_article(text: str) -> list:
 
     return list(lines)
 
-@typechecked
 def _clean_leading_categories(lines: t.Iterator) -> t.Iterator[str]:
     """
     Cleans up any wikimedia 'Category' tags
@@ -160,7 +151,6 @@ def _clean_leading_categories(lines: t.Iterator) -> t.Iterator[str]:
             has_content = True
             yield line
 
-@typechecked
 def _save_articles_to_jsonl(results: t.Iterator[dict], jsonl_out: pathlib.Path) -> None:
     """
     Writes the relevant data to disk
