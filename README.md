@@ -33,7 +33,7 @@ If you use a different shell, your syntax will be different.
 3. Figure out the correct version of enwiki to download is by selecting the latest dump that is "complete".
    ```{ps1}
    $wiki = 'enwiki'
-   $date = '20200820'
+   $date = '20201101'
    ```
 4. [Retrieve](./code/download_wikimedia.py) the dataset.
    ```{ps1}
@@ -62,5 +62,5 @@ If you use a different shell, your syntax will be different.
 Below is the suggested text to add to the "Methods and Materials" section of your paper when using this _process_.
 The references can be found [here](./references.bib)
 
-> The 2020/07/20 English version of Wikipedia [@wikipedia2020] was downloaded using Wikimedia's download service [@wikimedia2020].
+> The 2020/11/01 English version of Wikipedia [@wikipedia2020] was downloaded using Wikimedia's download service [@wikimedia2020].
 > The single-file data dump was then converted to a corpus of plain text articles using the process described in @wikicorpus2020.
