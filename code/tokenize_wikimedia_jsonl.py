@@ -7,7 +7,7 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from typeguard import typechecked
 
 @typechecked
-def tokenize_wikimedia_jsonl(jsonl_in: pathlib.Path, jsonl_out: pathlib.Path) -> None:
+def tokenize_wikimedia_jsonl(jsonl_in: pathlib.Path, jsonl_out: pathlib.Path, sub_process_count: int) -> None:
     """
     Tokenizes all the articles into the standard form: one sentence per line, paragraphs have a blank line between them.
 
@@ -17,6 +17,8 @@ def tokenize_wikimedia_jsonl(jsonl_in: pathlib.Path, jsonl_out: pathlib.Path) ->
         The JSONL containing all the articles
     jsonl_out : pathlib.Path
         The JSONL containing all the articles after tokenization
+    sub_process_count : int
+        The number of sub processes used to transformation from in to out formats
     """
 
     if jsonl_out.exists():
@@ -26,6 +28,7 @@ def tokenize_wikimedia_jsonl(jsonl_in: pathlib.Path, jsonl_out: pathlib.Path) ->
         extract = _collect_articles, extract_args = (jsonl_in),
         transform = _tokenize_article,
         save = _save_articles_to_jsonl, save_args = (jsonl_out),
+        worker_count = sub_process_count,
         show_progress = True)
     worker.start()
     worker.join()
@@ -78,7 +81,13 @@ if __name__ == '__main__':
         help = 'The JSONL containing all the articles after tokenization',
         type = pathlib.Path,
         required = True)
+    parser.add_argument(
+        '-spc', '--sub-process-count',
+        help = 'The number of sub processes used to transformation from in to out formats',
+        type = int,
+        default = 1)
     args = parser.parse_args()    
-    print(f'in: {args.jsonl_in}')
-    print(f'out: {args.jsonl_out}')
-    tokenize_wikimedia_jsonl(args.jsonl_in, args.jsonl_out)
+    print(f'jsonl in: {args.jsonl_in}')
+    print(f'jsonl out: {args.jsonl_out}')
+    print(f'sub process count: {args.sub_process_count}')
+    tokenize_wikimedia_jsonl(args.jsonl_in, args.jsonl_out, args.sub_process_count)

@@ -45,14 +45,18 @@ If you use a different shell, your syntax will be different.
    del "d:\$wiki\*.xml.bz2"
    ```
 5. [Convert](./code/wikimedia_to_json.py) the article text to JSONL.
-   This will create a folder containing all the articles in text only form.
-   One article per file.
+   This will create a file containing all the articles in text only form.
+   There is an optional parameter `-spc` that defaults to 1.
+   This allows for tuning on multi core machines.
+   On my PC, the best value seems to be `-spc 4`
    ```{ps1}
    python wikimedia_to_json.py -in d:/$wiki/$wiki-$date.xml -out d:/$wiki/$wiki.jsonl
    ```
 6. [Tokenize](./code/tokenize_wikimedia_jsonl.py) the article text.
-   This will create a folder containing all the tokenized documents.
-   Creating one sentence per line with paragraphs have a blank line between them.
+   This will create a file containing all the tokenized documents.
+   There is an optional parameter `-spc` that defaults to 1.
+   This allows for tuning on multi core machines.
+   On my PC, the best value seems to be `-spc 8`
    ```{ps1}
    python tokenize_wikimedia_jsonl.py -in d:/$wiki/$wiki.jsonl -out d:/$wiki/$wiki.tokenized.jsonl
    ```

@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 from typeguard import typechecked
 
 @typechecked
-def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path) -> None:
+def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path, sub_process_count: int) -> None:
     """
     Converts a Wikimedia dump file to a JSONL file containing all the articles minus any wiki markup.
     Articles that contain no text are removed.
@@ -21,6 +21,8 @@ def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path) -> No
         The XML dump file from Wikimedia
     jsonl_file : pathlib.Path
         JSONL containing all the wikimedia articles
+    sub_process_count : int
+        The number of sub processes used to transformation from in to out formats
     """
 
     if jsonl_out.exists():
@@ -30,6 +32,7 @@ def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path) -> No
         extract = _collect_articles, extract_args = (mediawiki_in),
         transform = _parse_article,
         save = _save_articles_to_jsonl, save_args = (jsonl_out),
+        worker_count = sub_process_count,
         show_progress = True)
     worker.start()
     worker.join()
@@ -173,7 +176,13 @@ if __name__ == '__main__':
         help = 'JSONL containing all the wikimedia articles',
         type = pathlib.Path,
         required = True)
+    parser.add_argument(
+        '-spc', '--sub-process-count',
+        help = 'The number of sub processes used to transformation from in to out formats',
+        type = int,
+        default = 1)
     args = parser.parse_args()
     print(f'wikimedia in: {args.wikimedia_in}')
-    print(f'JSONL out: {args.jsonl_out}')
-    wikimedia_to_json(args.wikimedia_in, args.jsonl_out)
+    print(f'jsonl out: {args.jsonl_out}')
+    print(f'sub process count: {args.sub_process_count}')
+    wikimedia_to_json(args.wikimedia_in, args.jsonl_out, args.sub_process_count)
