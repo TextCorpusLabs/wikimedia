@@ -36,20 +36,16 @@ If they are still in progress, get the former dump.
 If you use a different shell, your syntax will be different. 
 
 1. Clone this repository then open a PowerShell to the `~/code` directory.
-2. Install the required modules (if needed).
-   ```{ps1}
-   pip install -r requirements.txt
-   ```
-3. Figure out the correct version of enwiki to download is by selecting the latest dump that is "complete".
+2. Figure out the correct version of enwiki to download is by selecting the latest dump that is "complete".
    ```{ps1}
    $wiki = 'enwiki'
    $date = '20201101'
    ```
-4. [Retrieve](./code/download_wikimedia.py) the dataset.
+3. [Retrieve](./code/download_wikimedia.py) the dataset.
    ```{ps1}
    python download_wikimedia.py -wiki $wiki -date $date -dest d:/$wiki
    ```
-5. Extract the data in-place.
+4. Extract the data in-place.
    ```{ps1}
    . "C:/Program Files/7-Zip/7z.exe" e -od:/$wiki "d:/$wiki/*.bz2"
    del "d:\$wiki\*.xml.bz2"
