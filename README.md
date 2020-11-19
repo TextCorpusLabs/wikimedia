@@ -7,7 +7,7 @@
 [Wikimedia](https://www.wikimedia.org/) is the driving force behind [Wikipedia](https://www.wikipedia.org/).
 They provide a monthly full backup of all the data on Wikipedia as well as their properties.
 The purpose of this repo is to convert the Wikimedia dump format into our standard text corpus format.
-I.E., one document per file, one sentence per line, paragraphs have a blank line between them.
+I.E., A single JSONL file, one article per JSON line, cleansed text in the `text` element, tokenized text in the `tokenized` element.
 
 # Prerequisites
 
