@@ -11,14 +11,9 @@ I.E., A single JSONL file, one article per JSON line, cleansed text in the `text
 
 # Prerequisites
 
-In addtion to our standard [prerequisite](https://github.com/TextCorpusLabs/getting-started#prerequisites) and [Python](https://github.com/TextCorpusLabs/getting-started#python) instructions, please follow the below steps
+_After_ completing our standard [prerequisite](https://github.com/TextCorpusLabs/getting-started#prerequisites) and [Python](https://github.com/TextCorpusLabs/getting-started#python) instructions, please follow the below steps:
 
-1. Clone this repository then open an _Admin_ shell to the `~/code` directory.
-2. Install the required modules.
-   ```{shell}
-   pip install -r requirements.txt
-   ```
-3. Install NLTK package
+1. Install NLTK package
    ```{shell}
    python -c "import nltk;nltk.download('punkt')"
    ```
