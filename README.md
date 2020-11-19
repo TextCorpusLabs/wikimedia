@@ -66,6 +66,10 @@ If you use a different shell, your syntax will be different.
    ```{ps1}
    python tokenize_wikimedia_jsonl.py -in d:/$wiki/$wiki.jsonl -out d:/$wiki/$wiki.tokenized.jsonl
    ```
+7. Compress the result to save space.
+   ```{ps1}
+   . "C:/Program Files/7-Zip/7z.exe" a -bt d:/$wiki/$wiki.tokenized.jsonl.gz d:/$wiki/$wiki.tokenized.jsonl
+   ```
 
 ## Academic boilerplate
 
