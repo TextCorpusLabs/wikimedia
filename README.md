@@ -28,7 +28,7 @@ If you use a different shell, your syntax will be different.
 1. Clone this repository then open a PowerShell to the `~/code` directory.
 2. Install the required modules (if needed).
    ```{ps1}
-   pip install -r requirments.txt
+   pip install -r requirements.txt
    ```
 3. Figure out the correct version of enwiki to download is by selecting the latest dump that is "complete".
    ```{ps1}
