@@ -41,7 +41,10 @@ def _collect_articles(jsonl_in: pathlib.Path) -> t.Iterator[dict]:
 
 def _tokenize_article(article: dict) -> dict:
     lines = [line for line in _tokenize_lines(article['text'])]
-    json = { 'id' : article['id'], 'title' : article['title'], 'text': article['text'], 'tokenized' : lines }
+    json = {}
+    for key, value in article.items():
+        json[key] = value
+    json['tokenized'] = lines
     return json
 
 def _tokenize_lines(lines: t.List[str]) -> t.Iterator[str]:
