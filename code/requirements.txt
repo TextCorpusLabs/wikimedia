@@ -1,4 +1,5 @@
-mp_boilerplate>=0.3.2,<0.4.0
+jsonlines>=1.2.0,<2.0.0
+mp_boilerplate>=0.3.4,<0.4.0
 mwparserfromhell>=0.5.4,<0.6.0
 mwxml>=0.3.3,<0.4.0
 nltk>=3.4.5,<4.0.0
