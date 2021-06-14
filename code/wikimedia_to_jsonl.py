@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 from typeguard import typechecked
 
 @typechecked
-def wikimedia_to_json(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path, sub_process_count: int) -> None:
+def wikimedia_to_jsonl(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path, sub_process_count: int) -> None:
     """
     Converts a Wikimedia dump file to a JSONL file containing all the articles minus any wiki markup.
     Articles that contain no text are removed.
@@ -45,10 +45,13 @@ def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.
     """
 
     dis = 'disambiguation'
+    qq = 0
 
     with open(mediawiki_in, 'r', encoding = 'utf-8') as fp:
         dump = mwxml.Dump.from_file(fp)
         for page in dump:
+            if qq >= 50000:
+                break
             if page.namespace == 0 and page.redirect is None and dis not in page.title:
                 last_revision = None
                 for revision in page:
@@ -185,4 +188,4 @@ if __name__ == '__main__':
     print(f'wikimedia in: {args.wikimedia_in}')
     print(f'jsonl out: {args.jsonl_out}')
     print(f'sub process count: {args.sub_process_count}')
-    wikimedia_to_json(args.wikimedia_in, args.jsonl_out, args.sub_process_count)
+    wikimedia_to_jsonl(args.wikimedia_in, args.jsonl_out, args.sub_process_count)
