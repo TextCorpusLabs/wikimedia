@@ -45,13 +45,10 @@ def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.
     """
 
     dis = 'disambiguation'
-    qq = 0
 
     with open(mediawiki_in, 'r', encoding = 'utf-8') as fp:
         dump = mwxml.Dump.from_file(fp)
         for page in dump:
-            if qq >= 50000:
-                break
             if page.namespace == 0 and page.redirect is None and dis not in page.title:
                 last_revision = None
                 for revision in page:
