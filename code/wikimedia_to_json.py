@@ -158,7 +158,7 @@ def _save_articles_to_jsonl(results: t.Iterator[dict], jsonl_out: pathlib.Path) 
     """
     Writes the relevant data to disk
     """
-    with open(jsonl_out, 'w', encoding = 'utf-16') as fp:
+    with open(jsonl_out, 'w', encoding = 'utf-8') as fp:
         with jl.Writer(fp, compact = True, sort_keys = True) as writer:
             for item in results:
                 if len(item['text']) > 0:
