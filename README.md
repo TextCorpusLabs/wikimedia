@@ -25,7 +25,7 @@ You can install the package using the following steps:
 1. `pip` install using an _admin_ prompt.
    ```{ps1}
    pip uninstall wikipedia
-   pip install -v git+https://github.com/TextCorpusLabs/wikimedia.git
+   python -OO -m pip install -v git+https://github.com/TextCorpusLabs/wikimedia.git
    python -c "import nltk;nltk.download('punkt')"
    ```
 
