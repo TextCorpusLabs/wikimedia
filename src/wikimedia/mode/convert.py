@@ -1,15 +1,15 @@
 import html
 import jsonlines as jl
-import mp_boilerplate as mpb
 import mwparserfromhell
 import mwxml
 import pathlib
+import progressbar as pb
 import typing as t
-from argparse import ArgumentParser
-from typeguard import typechecked
+from . import const
 
-@typechecked
-def wikimedia_to_jsonl(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path, sub_process_count: int) -> None:
+Article = t.Dict[str, t.Union[int, str, t.List[str]]]
+
+def main(source: pathlib.Path, dest: pathlib.Path, dest_pattern: str, count: int) -> None:
     """
     Converts a Wikimedia dump file to a JSONL file containing all the articles minus any wiki markup.
     Articles that contain no text are removed.
@@ -17,25 +17,20 @@ def wikimedia_to_jsonl(mediawiki_in: pathlib.Path, jsonl_out: pathlib.Path, sub_
 
     Parameters
     ----------
-    mediawiki_in : pathlib.Path
-        The XML dump file from Wikimedia
-    jsonl_file : pathlib.Path
-        JSONL containing all the wikimedia articles
-    sub_process_count : int
-        The number of sub processes used to transformation from in to out formats
+    source : pathlib.Path
+        The root folder of the folders containing JATS files
+    dest : pathlib.Path
+        The folder to store the converted JSON files
+    dest_pattern: str
+        The format of the JSON file name
+    count : int
+        The number of MXML files in a single JSON file
     """
-
-    if jsonl_out.exists():
-        jsonl_out.unlink()
-
-    worker = mpb.EPTS(
-        extract = _collect_articles, extract_args = (mediawiki_in),
-        transform = _parse_article,
-        save = _save_articles_to_jsonl, save_args = (jsonl_out),
-        worker_count = sub_process_count,
-        show_progress = True)
-    worker.start()
-    worker.join()
+    articles_raw = _collect_articles(source)
+    articles = (_parse_article(raw) for raw in articles_raw)
+    articles = _save_articles(dest, dest_pattern, count, articles)
+    articles = _progress_bar(articles)
+    for _ in articles: pass
 
 def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.revision.Revision]:
     """
@@ -43,9 +38,7 @@ def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.
     mediawiki files store a lot of extra history information.
     we only need the latest information
     """
-
     dis = 'disambiguation'
-
     with open(mediawiki_in, 'r', encoding = 'utf-8') as fp:
         dump = mwxml.Dump.from_file(fp)
         for page in dump:
@@ -57,23 +50,21 @@ def _collect_articles(mediawiki_in: pathlib.Path) -> t.Iterator[mwxml.iteration.
                 if last_revision is not None and last_revision.model == 'wikitext':
                     yield last_revision
 
-def _parse_article(article: mwxml.iteration.revision.Revision) -> dict:
+def _parse_article(article: mwxml.iteration.revision.Revision) -> Article:
     """
     Gets the parts of the wiki markdown we care about
     """
-
-    wikicode = mwparserfromhell.parse(article.text)
-    text = ''.join(map(_extract_text, wikicode.nodes))
+    wiki_code = mwparserfromhell.parse(article.text)
+    text = ''.join(map(_extract_text, wiki_code.nodes))
     paragraphs = _clean_article(text)
     json = { 'id' : article.page.id, 'title' : article.page.title, 'text' : paragraphs }
-
     return json
 
 def _extract_text(node: mwparserfromhell.nodes.Node) -> str:
     """
-    Extracts the text from a wikinode
+    Extracts the text from a wiki node
 
-    There are a lot of cases where wikimarkup has characters that are for programing, not reading.
+    There are a lot of cases where wiki markup has characters that are for programing, not reading.
     We want to prune these out.
     """
     if isinstance(node, mwparserfromhell.nodes.wikilink.Wikilink):
@@ -99,8 +90,8 @@ def _extract_text(node: mwparserfromhell.nodes.Node) -> str:
 
 def _extract_text_Wikilink(node: mwparserfromhell.nodes.wikilink.Wikilink) -> str:
     """
-    Wikilinks come in 2 formats, thumbnails and actual links.
-    In the case of thumbnails, if posible pull out the nested caption.
+    Wiki links come in 2 formats, thumbnails and actual links.
+    In the case of thumbnails, if possible pull out the nested caption.
     """
     if node.title.startswith('File:') or node.title.startswith('Image:'):
         if node.text == None:
@@ -125,14 +116,13 @@ def _extract_text_Tag(node: mwparserfromhell.nodes.tag.Tag) -> str:
 def _extract_text_html(node: mwparserfromhell.nodes.html_entity.HTMLEntity) -> str:
     return html.unescape(str(node))
 
-def _clean_article(text: str) -> list:
+def _clean_article(text: str) -> list[str]:
     """
     Cleans an article text extract
 
-    Normaly a files are read a line, write a line.
+    Normally a files are read a line, write a line.
     However in this case there are cases where we need to know the contents of the line above or below.
     """
-
     lines = text.splitlines()
     lines = map(lambda line: line.strip(), lines)
     lines = filter(lambda line: line != '', lines)
@@ -140,49 +130,51 @@ def _clean_article(text: str) -> list:
     lines = reversed(list(lines))
     lines = _clean_leading_categories(lines)
     lines = reversed(list(lines))
-
     return list(lines)
 
-def _clean_leading_categories(lines: t.Iterator) -> t.Iterator[str]:
+def _clean_leading_categories(lines: t.Iterator[str]) -> t.Iterator[str]:
     """
     Cleans up any wikimedia 'Category' tags
     """
-
     has_content = False
     for line in lines:
         if not line.startswith("Category:") or has_content:
             has_content = True
             yield line
 
-def _save_articles_to_jsonl(results: t.Iterator[dict], jsonl_out: pathlib.Path) -> None:
+def _save_articles(folder_out: pathlib.Path, pattern: str, count: int, articles: t.Iterator[Article]) -> t.Iterator[Article]:
     """
     Writes the relevant data to disk
     """
-    with open(jsonl_out, 'w', encoding = 'utf-8') as fp:
-        with jl.Writer(fp, compact = True, sort_keys = True) as writer:
-            for item in results:
-                if len(item['text']) > 0:
-                    writer.write(item)
+    fp = None
+    writer: jl.Writer = None
+    fp_i = 0
+    fp_articles = 0
+    for article in articles:
+        if fp is None:
+            fp_name = folder_out.joinpath(pattern.format(id = fp_i))
+            fp = open(fp_name, 'w', encoding = 'utf-8', buffering = const.BUFFER_SIZE)
+            writer = jl.Writer(fp, compact = True, sort_keys = True)
+            fp_articles = 0
+        if 'text' in article and len(article['text']) > 0:
+            writer.write(article)
+            fp_articles = fp_articles + 1
+            yield article
+        if fp_articles >= count:
+            writer.close()
+            fp.close()
+            writer = None
+            fp = None
+            fp_i = fp_i + 1
+    if fp is not None:
+        writer.close()
+        fp.close()
 
-if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument(
-        '-in', '--wikimedia-in',
-        help = 'The XML dump file from Wikimedia',
-        type = pathlib.Path,
-        required = True)
-    parser.add_argument(
-        '-out', '--jsonl-out',
-        help = 'JSONL containing all the wikimedia articles',
-        type = pathlib.Path,
-        required = True)
-    parser.add_argument(
-        '-spc', '--sub-process-count',
-        help = 'The number of sub processes used to transformation from in to out formats',
-        type = int,
-        default = 1)
-    args = parser.parse_args()
-    print(f'wikimedia in: {args.wikimedia_in}')
-    print(f'jsonl out: {args.jsonl_out}')
-    print(f'sub process count: {args.sub_process_count}')
-    wikimedia_to_jsonl(args.wikimedia_in, args.jsonl_out, args.sub_process_count)
+def _progress_bar(articles: t.Iterable[Article]) -> t.Iterator[Article]:
+    bar_i = 0
+    widgets = ['Processing Articles # ', pb.Counter(), ' ', pb.Timer(), ' ', pb.BouncingBar(marker = '.', left = '[', right = ']')]
+    with pb.ProgressBar(widgets = widgets) as bar:
+        for article in articles:
+            bar_i = bar_i + 1
+            bar.update(bar_i)
+            yield article

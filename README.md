@@ -33,15 +33,24 @@ You can install the package using the following steps:
 
 You can run the package in the following ways:
 
-1. Download all files associated with PMC's OAS data dump.
+1. Download all files associated with a WikiMedia data dump.
    **NOTE**: the files are both tar'ed and gz'iped.
    You will need to extract them if you want to use the other tools.
    ```{ps1}
-   $7z = 'C:/Program Files/7-Zip/7z.exe'
-   $wiki = 'enwiki'
-   wikimedia download -wiki $wiki -date 20221001 -dest d:/$wiki/dl   
-   . $7z x -od:/$wiki/dl d:/$wiki/dl/*.bz2 -y
+   wikimedia download -wiki enwiki -date 20221001 -dest d:/enwiki/dl   
+   . 'C:/Program Files/7-Zip/7z.exe' x -od:/enwiki/dl d:/enwiki/dl/*.bz2 -y
    ``` 
+2. Convert WikiMedia's data dump to a JSONL file containing all the articles minus any markup.
+   Each JSONL file may contain more than one article.
+   ```{ps1}
+   wikimedia convert -source d:/enwiki/raw/enwiki-20221001.xml -dest d:/enwiki/conv
+   ```
+   The following are optional parameters
+   * `dest_pattern` is the format of the JSON file name.
+     It defaults to `wikimedia.{id:03}.jsonl`
+   * `count` is the number of MXML files in a single JSON file.
+     This is useful to prevent any one single file from exploding in size.
+     The default is `100000`
 
 # Steps
 
@@ -56,14 +65,6 @@ If they are still in progress, get the former dump.
 If you use a different shell, your syntax will be different. 
 
 1. Clone this repository then open a PowerShell to the `~/code` directory.
-5. [Convert](./code/wikimedia_to_jsonl.py) the article text to JSONL.
-   This will create a file containing all the articles in text only form.
-   There is an optional parameter `-spc` that defaults to 1.
-   This allows for tuning on multi core machines.
-   On my i7-6700k w/64GB RAM, the best value seems to be `-spc 4`
-   ```{ps1}
-   python wikimedia_to_jsonl.py -in d:/$wiki/$wiki-$date.xml -out d:/$wiki/$wiki.jsonl
-   ```
 6. [Tokenize](./code/tokenize_wikimedia_jsonl.py) the article text.
    This will create a file containing all the tokenized documents.
    There is an optional parameter `-spc` that defaults to 1.
@@ -72,11 +73,6 @@ If you use a different shell, your syntax will be different.
    ```{ps1}
    python tokenize_wikimedia_jsonl.py -in d:/$wiki/$wiki.jsonl -out d:/$wiki/$wiki.tokenized.jsonl
    ```
-7. Compress the result to save space.
-   ```{ps1}
-   . "C:/Program Files/7-Zip/7z.exe" a -bt d:/$wiki/$wiki.tokenized.jsonl.gz d:/$wiki/$wiki.tokenized.jsonl
-   ```
-
 
 # Development
 
@@ -110,10 +106,8 @@ Install the required modules for each of the repositories.
          ```{json}
          "args" : [
            "convert",
-           "-source", "d:/wikimedia/raw",
-           "-dest", "d:/wikimedia/conv",
-           "-dest_pattern", "wikimedia.{id:03}.jsonl",
-           "-count", "25000"]
+           "-source", "d:/wikimedia/raw/simplewiki-20221001.xml",
+           "-dest", "d:/wikimedia/conv"]
          ```
       3. Tokenize
          ```{json}
