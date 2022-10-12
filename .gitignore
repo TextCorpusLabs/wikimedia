@@ -1,3 +1,10 @@
 # IDE/tools
 __pycache__
+.vscode
 *.bak
+
+# Build
+/build
+/dist
+/typings
+*.egg-info
