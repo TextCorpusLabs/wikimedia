@@ -5,7 +5,7 @@ import mwxml
 import pathlib
 import progressbar as pb
 import typing as t
-from . import const
+from ..modes import const
 
 Article = t.Dict[str, t.Union[int, str, t.List[str]]]
 

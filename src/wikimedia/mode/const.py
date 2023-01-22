@@ -1,2 +1,0 @@
-import io
-BUFFER_SIZE = 4 * io.DEFAULT_BUFFER_SIZE
