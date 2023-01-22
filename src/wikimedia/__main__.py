@@ -1,51 +1,43 @@
 import pathlib
 import sys
 from argparse import ArgumentParser, Namespace
-from wikimedia.mode import convert, download
+from .dtypes import Convert as settings_conv, Metadata as settings_meta
+from .modes import Convert as app_conv, Metadata as app_meta
 
 def main() -> None:
-    parser = ArgumentParser(prog = 'wikimedia', description = 'Tools to work with wikimedia')
+    parser = ArgumentParser(prog = 'wikimedia', description = "Tools to work with Wikimedia's dump files")
     subparsers = parser.add_subparsers(help = 'sub-commands')
-    convert_parser(subparsers.add_parser('convert', help = 'Converts a wikimedia dump file to a JSONL file containing all the articles minus any wiki markup'))
-    download_parser(subparsers.add_parser('download', help = ' Downloads the file associated with a wikimedia data dump'))
+    metadata_parser(subparsers.add_parser('metadata', help = 'Extracts the metadata from the corpus'))
+    convert_parser(subparsers.add_parser('convert', help = 'Convert the data to our standard format'))
     args = parser.parse_args()
     print_args(args)
     args.run(args)
 
+def metadata_parser(parser: ArgumentParser) -> None:
+    def run(args: Namespace) -> None:
+        set = settings_meta(args.source, args.dest, args.log)
+        app = app_meta(set)
+        app.init()
+        app.run()
+    parser.add_argument('-source', type = pathlib.Path, required = True, help = "The .xml file sourced from Wikimedia")
+    parser.add_argument('-dest', type = pathlib.Path, required = True, help = "The CSV file used to store the metadata")
+    parser.add_argument('-log', type = pathlib.Path, help = 'The folder of raw XML chunks that did not process')
+    parser.set_defaults(run = run)
+    parser.set_defaults(cmd = 'metadata')
+
 def convert_parser(parser: ArgumentParser) -> None:
     def run(args: Namespace) -> None:
-        convert(args.source, args.dest, args.dest_pattern, args.count)
-    parser.add_argument('-source', type = ensure_file, required = True, help = 'The root file containing the data dump')
-    parser.add_argument('-dest', type = ensure_folder, required = True, help = 'The folder to store the converted JSON files')
-    parser.add_argument('-dest_pattern',  type = str, default = 'wikimedia.{id:03}.jsonl', help = 'The format of the JSON file name')
-    parser.add_argument('-count', type = int, default = 100000, help = 'The number of MXML articles in a single JSON file')
+        set = settings_conv(args.source, args.dest, args.lines, args.dest_pattern, args.log)
+        app = app_conv(set)
+        app.init()
+        app.run()
+    parser.add_argument('-source', type = pathlib.Path, required = True, help = 'The .xml file sourced from Wikimedia')
+    parser.add_argument('-dest', type = pathlib.Path, required = True, help = 'The folder for the converted TXT files')
+    parser.add_argument('-lines', type = int, default = 250000, help = 'The number of lines per TXT file')
+    parser.add_argument('-dest_pattern',  type = str, default = 'wikimedia.{id:04}.txt', help = 'The format of the TXT file name')
+    parser.add_argument('-log', type = pathlib.Path, help = 'The folder of raw XML chunks that did not process')
     parser.set_defaults(run = run)
     parser.set_defaults(cmd = 'convert')
-
-def download_parser(parser: ArgumentParser) -> None:
-    def run(args: Namespace) -> None:
-        download(args.wiki, args.date, args.dest)
-    parser.add_argument('-wiki', type = str, required = True, help = "The wiki''s short name")
-    parser.add_argument('-date', type = str, required = True, help = 'The date the backup snapshot was taken in yyyyMMdd format')
-    parser.add_argument('-dest', type = ensure_folder, required = True, help = 'The destination location to use when saving the files')
-    parser.set_defaults(run = run)
-    parser.set_defaults(cmd = 'download')
-
-def ensure_file(file_path: str) -> pathlib.Path:
-    file = pathlib.Path(file_path).resolve()
-    if not file.exists():
-        raise FileNotFoundError(str(file))
-    elif not file.is_file():
-        raise FileNotFoundError(str(file))
-    return file
-
-def ensure_folder(folder_path: str) -> pathlib.Path:
-    folder = pathlib.Path(folder_path).resolve()
-    if not folder.exists():
-        folder.mkdir(parents = True)
-    elif not folder.is_dir():
-        raise NotADirectoryError(str(folder))
-    return folder
 
 def print_args(args: Namespace) -> None:
     print(f'--- {args.cmd} ---')

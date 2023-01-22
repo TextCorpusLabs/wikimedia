@@ -1,3 +1,48 @@
+[project]
+name = "wikimedia"
+description = "Tools to work with Wikimedia's dump files"
+readme = "README.md"
+license = {file = "LICENSE"}
+dynamic = ["version"]
+authors = [
+  {name = "Mark Newman", email = "mark@trinetteandmark.com" }
+]
+maintainers = [
+  {name = "Mark Newman", email = "mark@trinetteandmark.com" }
+]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Topic :: Text Processing :: Linguistic"
+]
+
+requires-python = ">=3.11"
+dependencies = [
+  "progressbar2>=3.51.4,<4.0.0",
+  "mwparserfromhell>=0.6.4,<0.7.0",
+  "mwxml>=0.3.3,<0.4.0"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/TextCorpusLabs/wikimedia"
+"Bug Reports" = "https://github.com/TextCorpusLabs/wikimedia/issues"
+"Source" = "https://github.com/TextCorpusLabs/wikimedia"
+
+[project.scripts]
+wikimedia = "wikimedia.__main__:main"
+
 [build-system]
-requires = ["setuptools>=51", "wheel"]
+requires = ["setuptools>=65", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.dynamic]
+version = {attr = "wikimedia.__init__.__version__"}
