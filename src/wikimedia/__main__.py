@@ -33,7 +33,7 @@ def convert_parser(parser: ArgumentParser) -> None:
         app.run()
     parser.add_argument('-source', type = pathlib.Path, required = True, help = 'The .xml file sourced from Wikimedia')
     parser.add_argument('-dest', type = pathlib.Path, required = True, help = 'The folder for the converted TXT files')
-    parser.add_argument('-lines', type = int, default = 250000, help = 'The number of lines per TXT file')
+    parser.add_argument('-lines', type = int, default = 1000000, help = 'The number of lines per TXT file')
     parser.add_argument('-dest_pattern',  type = str, default = 'wikimedia.{id:04}.txt', help = 'The format of the TXT file name')
     parser.add_argument('-log', type = pathlib.Path, help = 'The folder of raw XML chunks that did not process')
     parser.set_defaults(run = run)

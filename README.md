@@ -85,7 +85,7 @@ The following are required parameters:
 The following are optional parameters:
 
 * `lines` is the number of lines per TXT file.
-  The default is 250000.
+  The default is 1000000.
 * `dest_pattern` is the format of the TXT file name.
   It defaults to `wikimedia.{id:04}.txt`.
   `id` is an increasing value that increments after `lines` are stored in a file. 
