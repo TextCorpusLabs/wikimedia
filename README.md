@@ -26,14 +26,14 @@ You can install the package using the following steps:
 `pip` install using an _admin_ prompt.
 
 ```{ps1}
-pip uninstall oas
+pip uninstall wikimedia
 python -OO -m pip install -v git+https://github.com/TextCorpusLabs/wikimedia.git
 ```
 
 or if you have the code local
 
 ```{ps1}
-pip uninstall oas
+pip uninstall wikimedia
 python -OO -m pip install -v c:/repos/TextCorpusLabs/wikimedia
 ```
 
