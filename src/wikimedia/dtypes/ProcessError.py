@@ -1,14 +1,15 @@
+import mwxml # type: ignore
 import typing as t
 
 class ProcessError(ValueError):
 
-    def __init__(self, document: str, issues: t.List[str]):
+    def __init__(self, document: mwxml.iteration.Revision, issues: t.List[str]):
         """
         Settings for metadata process
 
         Parameters
         ----------
-        document : str
+        document : mwxml.iteration.Revision
             The document that could not be processed
         issues : t.List[str]
             The list of reasons the document did not process
@@ -20,7 +21,7 @@ class ProcessError(ValueError):
         super().__init__(self._issues)
 
     @property
-    def document(self) -> str:
+    def document(self) -> mwxml.iteration.Revision:
         return self._document
     @property
     def issues(self) -> t.List[str]:
