@@ -1,8 +1,8 @@
-import mwxml
+import mwxml # type: ignore
 import typing as t
 from ..dtypes import Article, Extractor, ProcessError
 
-def extract_articles(documents: t.Iterator[mwxml.iteration.revision.Revision], fields: t.Dict[str, Extractor], log: t.Callable[[ValueError], None]) -> t.Iterator[Article]:
+def extract_articles(documents: t.Iterator[mwxml.iteration.revision.Revision], fields: t.Dict[str, Extractor], log: t.Callable[[ProcessError], None]) -> t.Iterator[Article]:
     """
     Extracts an article's named fields from the string representation
     """

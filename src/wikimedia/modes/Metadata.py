@@ -40,7 +40,7 @@ class Metadata:
 
     @staticmethod
     def _field_selection() -> t.Dict[str, Extractor]:
-        fields = {}
+        fields: t.Dict[str, Extractor] = {}
         fields['id'] = utils.extract_id
         fields['title'] = utils.extract_title
         return fields
@@ -51,9 +51,11 @@ class Metadata:
             writer = csv.writer(fp, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_ALL)    
             writer.writerow(fields)
             for article in articles:
-                row = [None] * len(fields)
+                row: t.List[str | None] = [None] * len(fields)
                 for i in range(0, len(fields)):
                     if fields[i] in article:
-                        row[i] = article[fields[i]]
+                        val = article[fields[i]]
+                        if val is not None:
+                            row[i] = str(val)
                 writer.writerow(row)
                 yield article
