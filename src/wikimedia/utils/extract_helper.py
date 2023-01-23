@@ -1,9 +1,9 @@
 import mwxml # type: ignore
 
-def extract_id(root: mwxml.iteration.revision.Revision) -> int | None:
-    if root.page is not None:
-        return root.page.id
+def extract_id(revision: mwxml.iteration.revision.Revision) -> int | None:
+    if revision.page is not None:
+        return revision.page.id
 
-def extract_title(root: mwxml.iteration.revision.Revision) -> str | None:
-    if root.page is not None:
-        return root.page.title
+def extract_title(revision: mwxml.iteration.revision.Revision) -> str | None:
+    if revision.page is not None:
+        return revision.page.title

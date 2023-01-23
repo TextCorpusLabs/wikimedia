@@ -12,14 +12,16 @@ def extract_articles(documents: t.Iterator[mwxml.iteration.revision.Revision], f
         except ProcessError as error:
             log(error)
 
-def _extract_article(document: mwxml.iteration.revision.Revision, fields: t.Dict[str, Extractor]) -> Article:
+def _extract_article(revision: mwxml.iteration.revision.Revision, fields: t.Dict[str, Extractor]) -> Article:
     article: Article = {}
     missing: t.List[str] = []
     for name, extractor in fields.items():
         try:
-            article[name] = extractor(document)
+            value = extractor(revision)
+            if value is not None:
+                article[name] = value
         except:
             missing.append(name)
     if len(missing) > 0:
-        raise ProcessError(document, [f'Missing {name}' for name in missing])
+        raise ProcessError(revision, [f'Missing {name}' for name in missing])
     return article
